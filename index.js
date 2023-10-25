@@ -10,7 +10,7 @@ require('dotenv').config()
 const port=process.env.PORT || 5000
 
 
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const uri = `mongodb+srv://${process.env.REACT_APP_NAME}:${process.env.REACT_APP_PASSWORD}@cluster0.xuxoczf.mongodb.net/?retryWrites=true&w=majority`;
 
 const client = new MongoClient(uri, {
@@ -23,8 +23,25 @@ const client = new MongoClient(uri, {
 
 async function run() {
   try {
+    
     await client.connect();
     await client.db("admin").command({ ping: 1 });
+    const allCouresCollation =client.db('CoderMaster').collection('AllCoures')
+    app.get('/allcoures',async(req,res)=>{
+        const qurey ={}
+        const result =await allCouresCollation.find(qurey).toArray()
+        res.send(result)
+    })
+    
+    app.get('/allcoures/:id',async(req,res)=>{
+      const id=req.params.id;
+      console.log(id)
+        const qurey ={id:id}
+        const result =await allCouresCollation.findOne(qurey)
+        res.send(result)
+    })
+
+    
 
 
     
