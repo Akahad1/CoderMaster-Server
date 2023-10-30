@@ -35,6 +35,7 @@ async function run() {
     const allCouresCollation =client.db('CoderMaster').collection('AllCoures')
     const instactorCollation =client.db('CoderMaster').collection('Instactor')
     const OrderCollation =client.db('CoderMaster').collection('order')
+    const ClassCollation =client.db('CoderMaster').collection('Class')
     app.get('/allcoures',async(req,res)=>{
         const qurey ={}
         const result =await allCouresCollation.find(qurey).toArray()
@@ -53,7 +54,10 @@ async function run() {
       const result= await instactorCollation.find(qurey).toArray()
       res.send(result)
     })
+    
+    // Payment Data
     const tran_id =new ObjectId().toString()
+
     app.post('/orders',async(req,res)=>{
       const qurey ={_id: new ObjectId(req.body.OrderID)}
       const product =await allCouresCollation.findOne(qurey)
@@ -101,7 +105,12 @@ async function run() {
     });
 
     const finalOrder={
-      product,
+      userName:order?.userName,
+      userEmail:order?. userEmail,
+      OrderID:order?.OrderID,
+      serialId:order?.serialId,
+      name:order?.name,
+      price:order?.price,
       paidStatus:false,
       tranId:tran_id
 
@@ -127,20 +136,37 @@ async function run() {
     app.post('/payment/fail/:tranId',async(req,res)=>{
       console.log(req.params.tranId)
       const qurey ={tranId:req.params.tranId}
-      const updatedoc ={
-        $set:{
-          paidStatus:false
-        }
-      }
-      const result =await OrderCollation.updateOne(qurey,updatedoc)
       
+      const result =await OrderCollation.deleteOne(qurey)
+      if(result.deletedCount){
         res.redirect(`http://localhost:3000/payment/fail/${req.params.tranId}`)
+
+      }
+      
+       
       
     })
     
 
     
+   app.get('/orders',async(req,res)=>{
+    const email=req.query.email;
+    
+    console.log(email)
+    
+    const qurey ={userEmail:email}
+    const result = await OrderCollation.find(qurey).toArray()
+    // console.log(result.paidStatus)
+    res.send(result)
+   })
 
+   app.get('/class',async(req,res)=>{
+    const myclasss =req.query.myclass;
+    console.log()
+    const qurey={name:myclasss}
+    const result=await ClassCollation.find(qurey).toArray()
+    res.send(result)
+   })
 
     
   } finally {
