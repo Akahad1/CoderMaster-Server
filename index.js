@@ -73,7 +73,6 @@ async function run() {
     
     app.get('/allcoures/:id',async(req,res)=>{
       const id=req.params.id;
-      console.log(id)
         const qurey ={codeid:id}
         const result =await allCouresCollation.findOne(qurey)
         res.send(result)
@@ -91,14 +90,13 @@ async function run() {
       const qurey ={_id: new ObjectId(req.body.OrderID)}
       const product =await allCouresCollation.findOne(qurey)
       const order =req.body
-      console.log(product)
 
       const data = {
         total_amount: product?.price,
         currency: 'BDT',
         tran_id: tran_id, // use unique tran_id for each api call
-        success_url: `http://localhost:5000/payment/sucess/${tran_id}`,
-        fail_url: `http://localhost:3000/payment/fail/${tran_id}`,
+        success_url: `https://codermaster-79114.web.app/payment/sucess/${tran_id}`,
+        fail_url: `https://codermaster-79114.web.app/payment/fail/${tran_id}`,
         cancel_url: 'http://localhost:3030/cancel',
         ipn_url: 'http://localhost:3030/ipn',
         shipping_method: 'Courier',
@@ -123,7 +121,6 @@ async function run() {
         ship_postcode: 1000,
         ship_country: 'Bangladesh',
     };
-    console.log(data)
 
     const sslcz = new SSLCommerzPayment(store_id, store_passwd, is_live)
     sslcz.init(data).then(apiResponse => {
@@ -140,7 +137,7 @@ async function run() {
       serialId:order?.serialId,
       name:order?.name,
       price:order?.price,
-      paidStatus:false,
+      paidStatus:true,
       tranId:tran_id
 
     }  
@@ -153,12 +150,12 @@ async function run() {
       const qurey ={tranId:req.params.tranId}
       const updatedoc ={
         $set:{
-          paidStatus:true
+          paidStatus:false
         }
       }
       const result =await OrderCollation.updateOne(qurey,updatedoc)
       if(result.modifiedCount>0){
-        res.redirect(`http://localhost:3000/payment/sucess/${req.params.tranId}`)
+        res.redirect(`https://codermaster-79114.web.app/payment/sucess/${req.params.tranId}`)
       }
     })
     
@@ -168,7 +165,7 @@ async function run() {
       
       const result =await OrderCollation.deleteOne(qurey)
       if(result.deletedCount){
-        res.redirect(`http://localhost:3000/payment/fail/${req.params.tranId}`)
+        res.redirect(`https://codermaster-79114.web.app/payment/fail/${req.params.tranId}`)
 
       }
       
@@ -178,7 +175,7 @@ async function run() {
     
 
     
-   app.get('/orders',async(req,res)=>{
+   app.get('/orders',veryfiyjwt,async(req,res)=>{
     const email=req.query.email;
     
     console.log(email)
