@@ -11,6 +11,7 @@ require('dotenv').config()
 const port=process.env.PORT || 5000
 
 
+
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const uri = `mongodb+srv://${process.env.REACT_APP_NAME}:${process.env.REACT_APP_PASSWORD}@cluster0.xuxoczf.mongodb.net/?retryWrites=true&w=majority`;
 
@@ -22,6 +23,24 @@ const client = new MongoClient(uri, {
   }
 });
 
+function veryfiyjwt(req,res,next){
+  const authHeader =req.headers.authraization
+  console.log('headertoken', authHeader)
+  console.log('env code', process.env.ACCESS_TOKEN_SECRET)
+  if(!authHeader){
+    res.status(401).send({message:'unauthraized access'})
+  }
+  const token=authHeader.split(' ')[1]
+  jwt.verify(token,process.env.ACCESS_TOKEN_SECRET,function(err,decoded){
+    if(err){
+      res.status(403).send({message:'Forbidend access'})
+    }
+    req.decoded=decoded
+    next()
+  })
+
+}
+
 const store_id = process.env.REACT_APP_STORE_ID
 const store_passwd = process.env.REACT_APP_STORE_PASSWD
 const is_live = false //true for live, false for sandbox
@@ -30,12 +49,22 @@ const is_live = false //true for live, false for sandbox
 async function run() {
   try {
     
-    await client.connect();
-    await client.db("admin").command({ ping: 1 });
+     client.connect();
+    // await client.db("admin").command({ ping: 1 });
     const allCouresCollation =client.db('CoderMaster').collection('AllCoures')
     const instactorCollation =client.db('CoderMaster').collection('Instactor')
     const OrderCollation =client.db('CoderMaster').collection('order')
     const ClassCollation =client.db('CoderMaster').collection('Class')
+
+    app.post('/jwt',(req,res)=>{
+      const user=req.body;
+      console.log('useremail',user)
+      const token=jwt.sign(user,process.env.ACCESS_TOKEN_SECRET,{expiresIn:'4d'})
+      res.send({token})
+    })
+
+
+
     app.get('/allcoures',async(req,res)=>{
         const qurey ={}
         const result =await allCouresCollation.find(qurey).toArray()
